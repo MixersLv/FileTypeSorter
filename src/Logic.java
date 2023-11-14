@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -8,10 +9,7 @@ import java.util.Scanner;
 
 public class Logic {
 
-    Logic(Scanner scanner, InputStream extensionreader, Path inputdirectory, Path outputDirectory) {
-
-        this.extensionreader = extensionreader;
-        this.extensionScanner = extensionScanner;
+    Logic(Scanner scanner, Path inputdirectory, Path outputDirectory) {
         this.inputdirectory = inputdirectory;
         this.scanner = scanner;
         this.outputDirectory = outputDirectory;
@@ -19,17 +17,12 @@ public class Logic {
 
     //----------------------------------------------
     public void run() throws IOException {
-        makeExtensionList();
         printList();
-        sortFiles();
-
-
+        sort();
     }
 
     //-----------------------------------------------
-    private InputStream extensionreader;
     private final Path inputdirectory;
-    private Scanner extensionScanner;
     private Scanner scanner;
     private final Path outputDirectory;
     private DirectoryStream<Path> dstream;
@@ -37,10 +30,45 @@ public class Logic {
     private String filename;
     //-----------------------------------------------
     private final ArrayList<String> filelist = new ArrayList<String>();
-    private final ArrayList<String> extensionlist = new ArrayList<String>();
-
     //-----------------------------------------------
 
+    public void sort() throws IOException {
+        sortDirectorys();
+        sortFiles();
+    }
+
+    private void sortDirectorys() throws IOException {
+
+        dstream = Files.newDirectoryStream(inputdirectory);
+
+        for (Path i : dstream) {
+            filename = String.valueOf(i.getFileName());
+
+            int index = filename.lastIndexOf(".");
+            if (index > 0) {
+                filetype = filename.substring(index + 1);
+            }
+            printFileType();
+
+            Path outputfolder = Path.of(outputDirectory + "\\Directories");
+            Path directoriespath = Path.of(outputDirectory + "\\Directories" + "\\" + filename);
+
+            if (Files.isDirectory(i)) {
+                if (Files.exists(outputfolder)) {
+                    Files.createDirectory(directoriespath);
+                }
+                else {
+                    Files.createDirectory(outputfolder);
+                }
+            }
+            else {
+
+
+            }
+
+        }
+
+    }
 
     public void sortFiles() throws IOException {
 
@@ -53,39 +81,24 @@ public class Logic {
             if (index > 0) {
                 filetype = filename.substring(index + 1);
             }
-
             printFileType();
 
-            if (extensionlist.contains(filetype)) {
+            Path outputfolder1 = Path.of(outputDirectory + "\\" + filetype);
+            Path directoriespath1 = Path.of(outputDirectory + "\\" + filetype + "\\" + filename);
 
-                Path outputfolder = Path.of(outputDirectory + "\\" + filetype);
-                Path finaloutputdir = Path.of(outputfolder + "\\" + filename);
+            if (Files.isDirectory(i)) {
 
-                if (Files.exists(outputfolder)) {
-                    Files.createFile(finaloutputdir);
+            }
+            else {
+                if (Files.exists(outputfolder1)) {
+                    Files.createFile(directoriespath1);
                 }
-                else{
-                    Files.createDirectory(outputfolder);
-                    Files.createFile(finaloutputdir);
-                }
-
-                if (Files.isDirectory(i)) {
-                    outputfolder = Path.of(outputDirectory + "\\Directories");
-                    finaloutputdir = Path.of(outputfolder + "\\" + filename);
-
-                    if (Files.exists(outputfolder)) {
-                        Files.createFile(finaloutputdir);
-                    }
-                    else {
-                        Files.createDirectory(outputfolder);
-                        Files.createFile(finaloutputdir);
-                    }
+                else {
+                    Files.createDirectory(outputfolder1);
+                    Files.createFile(directoriespath1);
                 }
             }
-
-
         }
-
     }
 
 
@@ -99,16 +112,6 @@ public class Logic {
 
             System.out.println(filelist.get(i));
 
-        }
-
-    }
-
-    public void makeExtensionList() {
-
-        extensionScanner = new Scanner(extensionreader);
-
-        while (extensionScanner.hasNextLine()) {
-            extensionlist.add(extensionScanner.nextLine());
         }
 
     }
